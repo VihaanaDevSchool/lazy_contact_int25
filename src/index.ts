@@ -5,6 +5,11 @@ import contactRoutes from "./routes/contactRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const HOST = "0.0.0.0";
+
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running at http://${HOST}:${PORT}`);
+});
 
 // Middleware
 app.use(cors());
@@ -19,7 +24,7 @@ app.get("/", (_req, res) => {
 });
 
 // Start server
-app.listen(PORT, "0.0.0.0", async () => {
+app.listen(PORT, HOST, async () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
   await connectDB();
 });
