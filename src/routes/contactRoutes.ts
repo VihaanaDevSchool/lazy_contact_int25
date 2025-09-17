@@ -12,7 +12,6 @@ router.post("/", protect, async (req: AuthRequest, res) => {
     await contact.save();
     res.status(201).json(contact);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
@@ -23,12 +22,11 @@ router.get("/", protect, async (req: AuthRequest, res) => {
     const contacts = await Contact.find({ user: req.user.id });
     res.json(contacts);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
 
-// READ ONE contact (only if it belongs to the logged-in user)
+// READ ONE contact by ID (only if it belongs to user)
 router.get("/:id", protect, async (req: AuthRequest, res) => {
   try {
     const contact = await Contact.findOne({
@@ -38,12 +36,11 @@ router.get("/:id", protect, async (req: AuthRequest, res) => {
     if (!contact) return res.status(404).json({ message: "Contact not found" });
     res.json(contact);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
 
-// UPDATE contact (only if it belongs to the logged-in user)
+// UPDATE a contact by ID (only if it belongs to user)
 router.put("/:id", protect, async (req: AuthRequest, res) => {
   try {
     const updatedContact = await Contact.findOneAndUpdate(
@@ -55,12 +52,11 @@ router.put("/:id", protect, async (req: AuthRequest, res) => {
       return res.status(404).json({ message: "Contact not found" });
     res.json(updatedContact);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
 
-// DELETE contact (only if it belongs to the logged-in user)
+// DELETE a contact by ID (only if it belongs to user)
 router.delete("/:id", protect, async (req: AuthRequest, res) => {
   try {
     const deletedContact = await Contact.findOneAndDelete({
@@ -71,7 +67,6 @@ router.delete("/:id", protect, async (req: AuthRequest, res) => {
       return res.status(404).json({ message: "Contact not found" });
     res.json({ message: "Contact deleted successfully" });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
