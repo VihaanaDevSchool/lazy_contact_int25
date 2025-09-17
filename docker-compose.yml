@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: temp_contact_app
+    ports:
+      - "5000:5000" # Expose port 5000 inside container → 6001 on host
+      # Y: extra ports
+      # - "6001:5000" # Expose port 5000 inside container → 6001 on host
+      # - "6002:5000" # Expose port 5000 inside container → 6001 on host
+      # - "7341:5000" # Expose port 5000 inside container → 6001 on host
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/mernapp
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    container_name: temp_contact_db
+    ports:
+      - "27017:27017" # optional, exposes DB to your host
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
