@@ -1,47 +1,53 @@
 // IMP: # Contact page routes
 import express from "express";
 import Contact from "../models/Contact";
-import protect from "../middleware/auth.tso";
+import { protect, AuthRequest } from "../middleware/auth";
 
 const router = express.Router();
 
-// CREATE
-router.post("/", protect, async (req, res) => {
+// CREATE a contact
+router.post("/", protect, async (req: AuthRequest, res) => {
   try {
-    const contact = new Contact(req.body);
+    const contact = new Contact({ ...req.body, user: req.user.id });
     await contact.save();
-    res.json(contact);
+    res.status(201).json(contact);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
 
-// READ ALL
-router.get("/", async (req, res) => {
+// READ ALL contacts for the logged-in user
+router.get("/", protect, async (req: AuthRequest, res) => {
   try {
-    const contacts = await Contact.find();
+    const contacts = await Contact.find({ user: req.user.id });
     res.json(contacts);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
 
-// READ ONE
-router.get("/:id", async (req, res) => {
+// READ ONE contact (only if it belongs to the logged-in user)
+router.get("/:id", protect, async (req: AuthRequest, res) => {
   try {
-    const contact = await Contact.findById(req.params.id);
+    const contact = await Contact.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    });
     if (!contact) return res.status(404).json({ message: "Contact not found" });
     res.json(contact);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
 
-// UPDATE
-router.put("/:id", async (req, res) => {
+// UPDATE contact (only if it belongs to the logged-in user)
+router.put("/:id", protect, async (req: AuthRequest, res) => {
   try {
-    const updatedContact = await Contact.findByIdAndUpdate(
-      req.params.id,
+    const updatedContact = await Contact.findOneAndUpdate(
+      { _id: req.params.id, user: req.user.id },
       req.body,
       { new: true },
     );
@@ -49,18 +55,23 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ message: "Contact not found" });
     res.json(updatedContact);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });
 
-// DELETE
-router.delete("/:id", async (req, res) => {
+// DELETE contact (only if it belongs to the logged-in user)
+router.delete("/:id", protect, async (req: AuthRequest, res) => {
   try {
-    const deletedContact = await Contact.findByIdAndDelete(req.params.id);
+    const deletedContact = await Contact.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.id,
+    });
     if (!deletedContact)
       return res.status(404).json({ message: "Contact not found" });
     res.json({ message: "Contact deleted successfully" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error", error: err });
   }
 });

@@ -7,6 +7,7 @@ export interface IContact extends Document {
   job: string;
   address?: string;
   notes?: string;
+  user: string; // ← add this
 }
 
 const contactSchema = new Schema<IContact>({
@@ -16,6 +17,7 @@ const contactSchema = new Schema<IContact>({
   job: { type: String },
   address: { type: String },
   notes: { type: String },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // ← add this
 });
 
 export default mongoose.model<IContact>("Contact", contactSchema);

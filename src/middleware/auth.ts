@@ -1,24 +1,44 @@
 // IMP: # Stoping access for other routes.
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import User from "../models/User";
 
 export interface AuthRequest extends Request {
-  user?: any;
+  user?: { id: string };
 }
 
-export const protect = (
+// Protect routes middleware
+export const protect = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
-  let token = req.headers.authorization?.split(" ")[1]; // Bearer <token>
-  if (!token) return res.status(401).json({ message: "Not authorized" });
+  let token;
+
+  // Check if authorization header exists and starts with "Bearer"
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token) {
+    return res.status(401).json({ message: "Not authorized, no token" });
+  }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
-    req.user = decoded;
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret") as {
+      id: string;
+    };
+
+    // Attach user ID to req.user
+    req.user = { id: decoded.id };
+
     next();
   } catch (err) {
-    res.status(401).json({ message: "Token invalid", error: err });
+    console.error(err);
+    res.status(401).json({ message: "Not authorized, token failed" });
   }
 };
