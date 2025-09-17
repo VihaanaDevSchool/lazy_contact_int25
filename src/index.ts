@@ -1,22 +1,34 @@
 import express from "express";
-import cors from "cors"; // diddleware for {ports, requests, frontend}
-import { connectDB } from "./config/db"; // database
-import authRoutes from "./routes/authRoutes";
+import cors from "cors";
+import connectDB from "./config/db";
 import contactRoutes from "./routes/contactRoutes";
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-connectDB();
-
-app.use("/api/auth", authRoutes);
+// Routes
 app.use("/api/contacts", contactRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Backend API is working 🚀");
+// Root test
+app.get("/", (_req, res) => {
+  res.send("🚀 API is running inside Docker!");
 });
 
-app.listen(5000, "0.0.0.0", () => {
-  console.log("🚀 Server running at http://localhost:5000");
+// Start server
+app.listen(PORT, "0.0.0.0", async () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  await connectDB();
 });
+
+// Y:
+// ----------------
+// IP find
+// ip addr show
+// ----------------
+// port allow
+// sudo ufw allow 5000
+// ================
