@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    /* Y:  Modern JS features */
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+
+    /* Y: Node-style resolution */
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    /* Y: Strictness & safety */
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    /* Y: Allow TS/JS mix */
+    "allowJs": true,
+    "checkJs": false,
+
+    /* Y: Dev experience */
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
+  },
+  // Y:  include the path
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
