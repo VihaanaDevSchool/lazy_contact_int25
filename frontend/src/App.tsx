@@ -1,38 +1,35 @@
-import { useAuth } from "./context/AuthContext";
-import Contacts from "./components/Contacts";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import ContactForm from "./components/ContactForm";
+import ContactList from "./components/ContactList";
 
-function App() {
-  const { token } = useAuth();
-  const [showRegister, setShowRegister] = useState(false);
+export default function App() {
+  const [contacts, setContacts] = useState<any[]>([]);
 
-  if (!token) {
-    return (
-      <div>
-        {showRegister ? (
-          <>
-            <Register />
-            <p>
-              Already have an account?{" "}
-              <button onClick={() => setShowRegister(false)}>Login</button>
-            </p>
-          </>
-        ) : (
-          <>
-            <Login />
-            <p>
-              Don’t have an account?{" "}
-              <button onClick={() => setShowRegister(true)}>Register</button>
-            </p>
-          </>
-        )}
-      </div>
-    );
-  }
+  const fetchContacts = async () => {
+    const res = await axios.get("http://localhost:5000/api/contacts");
+    setContacts(res.data);
+  };
 
-  return <Contacts token={token} />;
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const addContact = async (contact: any) => {
+    const res = await axios.post("http://localhost:5000/api/contacts", contact);
+    setContacts([...contacts, res.data]);
+  };
+
+  const deleteContact = async (id: string) => {
+    await axios.delete(`http://localhost:5000/api/contacts/${id}`);
+    setContacts(contacts.filter((c) => c._id !== id));
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
+      <h1 className="text-2xl font-bold mb-4">📒 Contact Manager</h1>
+      <ContactForm onAdd={addContact} />
+      <ContactList contacts={contacts} onDelete={deleteContact} />
+    </div>
+  );
 }
-
-export default App;

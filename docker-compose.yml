@@ -1,28 +1,42 @@
+# Y: extra ports
+# - "6001:5000" # Expose port 5000 inside container → 6001 on host
+# - "6002:5000" # Expose port 5000 inside container → 6001 on host
+# - "7341:5000" # Expose port 5000 inside container → 6001 on host
+
 version: "3.8"
 
 services:
   app:
-    build: .
+    build: ./backend
     container_name: temp_contact_app
     ports:
-      - "5000:5000" # host:container
-      # Y: extra ports
-      # - "6001:5000" # Expose port 5000 inside container → 6001 on host
-      # - "6002:5000" # Expose port 5000 inside container → 6001 on host
-      # - "7341:5000" # Expose port 5000 inside container → 6001 on host
+      - "5000:5000" # backend API
     environment:
       - MONGO_URI=mongodb://mongo:27017/mernapp
     depends_on:
       - mongo
     restart: unless-stopped
     volumes:
-      - .:/app # <-- mount your local project into container
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    container_name: temp_contact_frontend
+    ports:
+      - "3000:3000" # frontend React app
+    depends_on:
+      - app
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
 
   mongo:
     image: mongo:7
     container_name: temp_contact_db
     ports:
-      - "27017:27017" # optional, exposes DB to your host
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
