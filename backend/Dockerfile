@@ -1,18 +1,7 @@
-# Use Bun for fast builds
-FROM oven/bun:1 AS base
+FROM node:18-alpine
 WORKDIR /app
-
-# Copy package.json + lock first for caching
-COPY package.json bun.lock ./
-
-# Install deps
-RUN bun install --frozen-lockfile
-
-# Copy rest of code
+COPY package*.json ./
+RUN npm install
 COPY . .
-
-# Expose backend port
 EXPOSE 5000
-
-# Start backend
-CMD ["bun", "run", "dev"]
+CMD ["npm", "run", "dev"]

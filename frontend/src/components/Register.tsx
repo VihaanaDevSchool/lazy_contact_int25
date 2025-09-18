@@ -1,54 +1,65 @@
 import { useState } from "react";
-import { register } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
+import { register as apiRegister } from "../api/auth";
 
-const Register = () => {
+function Register() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const { setToken } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = await register(form);
-    if (data.token) setToken(data.token); // auto login after register
+    setLoading(true);
+    try {
+      const { token } = await apiRegister({ name, email, password });
+      setToken(token);
+    } catch (error) {
+      alert("Register failed: " + (error as Error).message);
+    }
+    setLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm space-y-4"
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-6 rounded-lg shadow-md w-80"
+    >
+      <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Name"
+        className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        required
+      />
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+        className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        required
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        required
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-green-500 text-white p-3 rounded hover:bg-green-600 disabled:opacity-50"
       >
-        <h2 className="text-2xl font-bold text-center">Register</h2>
-        <input
-          className="w-full p-2 border rounded"
-          type="text"
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
-        <input
-          className="w-full p-2 border rounded"
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-        />
-        <input
-          className="w-full p-2 border rounded"
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-        />
-        <button
-          type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
-        >
-          Register
-        </button>
-      </form>
-    </div>
+        {loading ? "Registering..." : "Register"}
+      </button>
+    </form>
   );
-};
+}
 
 export default Register;

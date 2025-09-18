@@ -1,23 +1,30 @@
-const API_URL = "http://localhost:5000/api/auth";
+import axios from "axios";
 
-export const register = async (data: {
+const API_URL = "/api/auth";
+
+const api = axios.create({ baseURL: API_URL });
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const register = async (userData: {
   name: string;
   email: string;
   password: string;
 }) => {
-  const res = await fetch(`${API_URL}/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return res.json();
+  const response = await api.post("/register", userData);
+  return response.data;
 };
 
-export const login = async (data: { email: string; password: string }) => {
-  const res = await fetch(`${API_URL}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return res.json();
+export const login = async (userData: { email: string; password: string }) => {
+  const response = await api.post("/login", userData);
+  if (response.data.token) {
+    localStorage.setItem("token", response.data.token);
+  }
+  return response.data;
 };

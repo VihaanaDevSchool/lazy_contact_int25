@@ -4,42 +4,40 @@
 # - "7341:5000" # Expose port 5000 inside container → 6001 on host
 
 version: "3.8"
-
 services:
-  app:
-    build: ./backend
-    container_name: temp_contact_app
+  mongodb:
+    image: mongo:latest
     ports:
-      - "5000:5000" # backend API
+      - "27017:27017"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/mernapp
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://root:example@mongodb:27017/lazycontacts?authSource=admin
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-prod
+      NODE_ENV: development
     depends_on:
-      - mongo
-    restart: unless-stopped
+      - mongodb
     volumes:
       - ./backend:/app
+      - /app/node_modules
 
   frontend:
     build: ./frontend
-    container_name: temp_contact_frontend
     ports:
-      - "3000:3000" # frontend React app
+      - "3000:5173"
     depends_on:
-      - app
-    restart: unless-stopped
+      - backend
     volumes:
       - ./frontend:/app
-    environment:
-      - VITE_API_URL=http://localhost:5000/api
-
-  mongo:
-    image: mongo:7
-    container_name: temp_contact_db
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    restart: unless-stopped
+      - /app/node_modules
 
 volumes:
-  mongo_data:
+  mongodb_data:

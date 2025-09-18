@@ -1,32 +1,32 @@
-import { useAuth } from "./context/AuthContext";
-import Contacts from "./components/Contacts.tsx";
-import Login from "./components/Login.tsx";
-import Register from "./components/Register.tsx";
-import { useState } from "react";
+import { useContext } from "react";
+import { AuthContext, AuthProvider } from "./context/AuthContext";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import Contacts from "./components/Contacts";
+
+function AppContent() {
+  const { token } = useContext(AuthContext)!;
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-8">
+      {token ? (
+        <Contacts />
+      ) : (
+        <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
+          <Login />
+          <Register />
+        </div>
+      )}
+    </div>
+  );
+}
 
 function App() {
-  const { token } = useAuth();
-  const [showRegister, setShowRegister] = useState(false);
-
-  if (!token) {
-    return (
-      <div>
-        {showRegister ? <Register /> : <Login />}
-        <div className="text-center mt-4">
-          <button
-            className="text-blue-600 underline"
-            onClick={() => setShowRegister(!showRegister)}
-          >
-            {showRegister
-              ? "Already have an account? Login"
-              : "New here? Register"}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return <div>{token ? <Contacts token={token} /> : <Login />}</div>;
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 export default App;

@@ -1,27 +1,7 @@
-
-# Stage 1: Build the React app
-FROM node:20 AS build
+FROM node:18-alpine
 WORKDIR /app
-
-# Copy deps first
-COPY package.json package-lock.json* pnpm-lock.yaml* bun.lock* ./
+COPY package*.json ./
 RUN npm install
-
-# Copy source
 COPY . .
-
-# Build production-ready app
-RUN npm run build
-
-# Stage 2: Serve with a lightweight webserver
-FROM nginx:alpine
-WORKDIR /usr/share/nginx/html
-
-# Copy build files
-COPY --from=build /app/dist ./
-
-# Copy custom nginx config (optional, can add proxy rules)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 3000
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

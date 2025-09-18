@@ -1,73 +1,81 @@
-// IMP: # Contact page routes
 import express from "express";
 import Contact from "../models/Contact";
-import { protect, AuthRequest } from "../middleware/auth";
+import protect from "../middleware/auth";
 
 const router = express.Router();
+router.use(protect);
 
-// CREATE a contact
-router.post("/", protect, async (req: AuthRequest, res) => {
+router.get("/", async (req, res) => {
   try {
-    const contact = new Contact({ ...req.body, user: req.user.id });
-    await contact.save();
-    res.status(201).json(contact);
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
-  }
-});
-
-// READ ALL contacts for the logged-in user
-router.get("/", protect, async (req: AuthRequest, res) => {
-  try {
-    const contacts = await Contact.find({ user: req.user.id });
+    const contacts = await Contact.find({ user: req.user });
     res.json(contacts);
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// READ ONE contact by ID (only if it belongs to user)
-router.get("/:id", protect, async (req: AuthRequest, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const contact = await Contact.findOne({
       _id: req.params.id,
-      user: req.user.id,
+      user: req.user,
     });
-    if (!contact) return res.status(404).json({ message: "Contact not found" });
+    if (!contact) {
+      return res.status(404).json({ message: "Contact not found" });
+    }
     res.json(contact);
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// UPDATE a contact by ID (only if it belongs to user)
-router.put("/:id", protect, async (req: AuthRequest, res) => {
+router.post("/", async (req, res) => {
+  const { name, email, phone } = req.body;
+  if (!name || !email || !phone) {
+    return res.status(400).json({ message: "Please add all fields" });
+  }
   try {
-    const updatedContact = await Contact.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
-      req.body,
+    const contact = await Contact.create({
+      user: req.user,
+      name,
+      email,
+      phone,
+    });
+    res.status(201).json(contact);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  const { name, email, phone } = req.body;
+  try {
+    const contact = await Contact.findOneAndUpdate(
+      { _id: req.params.id, user: req.user },
+      { name, email, phone },
       { new: true },
     );
-    if (!updatedContact)
+    if (!contact) {
       return res.status(404).json({ message: "Contact not found" });
-    res.json(updatedContact);
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
+    }
+    res.json(contact);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// DELETE a contact by ID (only if it belongs to user)
-router.delete("/:id", protect, async (req: AuthRequest, res) => {
+router.delete("/:id", async (req, res) => {
   try {
-    const deletedContact = await Contact.findOneAndDelete({
+    const contact = await Contact.findOneAndDelete({
       _id: req.params.id,
-      user: req.user.id,
+      user: req.user,
     });
-    if (!deletedContact)
+    if (!contact) {
       return res.status(404).json({ message: "Contact not found" });
-    res.json({ message: "Contact deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
+    }
+    res.json({ message: "Contact removed" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 

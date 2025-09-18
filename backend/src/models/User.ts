@@ -1,31 +1,39 @@
 //  IMP:  # User Defination in database =  Interface IUser extends Document.
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Document, Model } from "mongoose";
 import bcrypt from "bcryptjs";
 
-export interface IUser extends Document {
+// Define interface for the User document
+interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  comparePassword(password: string): Promise<boolean>;
+  matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
-const userSchema = new Schema<IUser>({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-});
+// Define the schema
+const userSchema = new mongoose.Schema<IUser>(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+  },
+  { timestamps: true },
+);
 
-// Hash password before saving
+// Password hashing before save
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) {
+    next();
+  }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
-// Compare password method
-userSchema.methods.comparePassword = async function (password: string) {
-  return bcrypt.compare(password, this.password);
+// Define matchPassword method
+userSchema.methods.matchPassword = async function (enteredPassword: string) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default mongoose.model<IUser>("User", userSchema);
+// Create and export the model
+const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
+export default User;
