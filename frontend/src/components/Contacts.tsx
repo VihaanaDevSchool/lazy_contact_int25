@@ -1,122 +1,111 @@
 import { useEffect, useState } from "react";
-import { getContacts, createContact } from "../assets/api/contacts";
+import { getContacts, addContact, deleteContact } from "../assets/api/contacts";
 
-// Define a Contact type (you can extend it later)
 interface Contact {
   _id: string;
   name: string;
-  phone: string;
   email: string;
-  job?: string;
-  address?: string;
-  notes?: string;
+  phone: string;
 }
 
 const Contacts = ({ token }: { token: string }) => {
-  const [contacts, setContacts] = useState<Contact[]>([]); // ✅ properly typed
-  const [form, setForm] = useState<Omit<Contact, "_id">>({
-    name: "",
-    phone: "",
-    email: "",
-    job: "",
-    address: "",
-    notes: "",
-  });
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [form, setForm] = useState({ name: "", email: "", phone: "" });
 
+  // Fetch contacts on load
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchContacts = async () => {
       try {
         const data = await getContacts(token);
         setContacts(data);
       } catch (err) {
-        console.error("Failed to fetch contacts", err);
+        console.error("Failed to fetch contacts:", err);
       }
     };
-    fetchData();
+    fetchContacts();
   }, [token]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Add new contact
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newContact = await createContact(form, token);
-      setContacts((prev) => [...prev, newContact]);
-      setForm({
-        name: "",
-        phone: "",
-        email: "",
-        job: "",
-        address: "",
-        notes: "",
-      });
+      const newContact = await addContact(form, token);
+      setContacts([...contacts, newContact]);
+      setForm({ name: "", email: "", phone: "" });
     } catch (err) {
-      console.error("Failed to create contact", err);
+      console.error("Failed to add contact:", err);
+    }
+  };
+
+  // Delete contact
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteContact(id, token);
+      setContacts(contacts.filter((c) => c._id !== id));
+    } catch (err) {
+      console.error("Failed to delete contact:", err);
     }
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">Contacts</h1>
+    <div className="max-w-2xl mx-auto p-6">
+      <h2 className="text-2xl font-bold text-center mb-6">My Contacts</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-2 mb-6">
+      {/* Add Contact Form */}
+      <form
+        onSubmit={handleAdd}
+        className="bg-white shadow rounded-lg p-4 flex flex-col gap-3 mb-6"
+      >
         <input
-          className="border p-2 w-full rounded"
           type="text"
           placeholder="Name"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
+          className="border p-2 rounded"
+          required
         />
         <input
-          className="border p-2 w-full rounded"
-          type="text"
-          placeholder="Phone"
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })}
-        />
-        <input
-          className="border p-2 w-full rounded"
           type="email"
           placeholder="Email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
+          className="border p-2 rounded"
+          required
         />
         <input
-          className="border p-2 w-full rounded"
           type="text"
-          placeholder="Job"
-          value={form.job}
-          onChange={(e) => setForm({ ...form, job: e.target.value })}
-        />
-        <input
-          className="border p-2 w-full rounded"
-          type="text"
-          placeholder="Address"
-          value={form.address}
-          onChange={(e) => setForm({ ...form, address: e.target.value })}
-        />
-        <input
-          className="border p-2 w-full rounded"
-          type="text"
-          placeholder="Notes"
-          value={form.notes}
-          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          placeholder="Phone"
+          value={form.phone}
+          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          className="border p-2 rounded"
+          required
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white p-2 rounded w-full"
+          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
           Add Contact
         </button>
       </form>
 
-      <ul className="space-y-2">
+      {/* Contact List */}
+      <ul className="space-y-3">
         {contacts.map((c) => (
           <li
             key={c._id}
-            className="border p-2 rounded bg-gray-50 flex justify-between"
+            className="flex justify-between items-center bg-gray-50 p-3 rounded shadow"
           >
-            <span>
-              <strong>{c.name}</strong> – {c.phone}
-            </span>
+            <div>
+              <p className="font-medium">{c.name}</p>
+              <p className="text-sm text-gray-600">{c.email}</p>
+              <p className="text-sm text-gray-600">{c.phone}</p>
+            </div>
+            <button
+              onClick={() => handleDelete(c._id)}
+              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>

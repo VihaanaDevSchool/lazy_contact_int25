@@ -1,20 +1,23 @@
-const API_URL = "http://localhost:5000/api/contacts";
+// frontend/src/assets/api/contacts.ts
+import api from "./axios";
 
 export const getContacts = async (token: string) => {
-  const res = await fetch(API_URL, {
+  const { data } = await api.get("/contacts", {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return res.json();
+  return data;
 };
 
-export const createContact = async (data: any, token: string) => {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
+export const addContact = async (contact: any, token: string) => {
+  const { data } = await api.post("/contacts", contact, {
+    headers: { Authorization: `Bearer ${token}` },
   });
-  return res.json();
+  return data;
+};
+
+export const deleteContact = async (id: string, token: string) => {
+  const { data } = await api.delete(`/contacts/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
 };

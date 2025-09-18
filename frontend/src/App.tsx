@@ -1,35 +1,32 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import ContactForm from "./components/ContactForm";
-import ContactList from "./components/ContactList";
+import { useAuth } from "./context/AuthContext";
+import Contacts from "./components/Contacts.tsx";
+import Login from "./components/Login.tsx";
+import Register from "./components/Register.tsx";
+import { useState } from "react";
 
-export default function App() {
-  const [contacts, setContacts] = useState<any[]>([]);
+function App() {
+  const { token } = useAuth();
+  const [showRegister, setShowRegister] = useState(false);
 
-  const fetchContacts = async () => {
-    const res = await axios.get("http://localhost:5000/api/contacts");
-    setContacts(res.data);
-  };
+  if (!token) {
+    return (
+      <div>
+        {showRegister ? <Register /> : <Login />}
+        <div className="text-center mt-4">
+          <button
+            className="text-blue-600 underline"
+            onClick={() => setShowRegister(!showRegister)}
+          >
+            {showRegister
+              ? "Already have an account? Login"
+              : "New here? Register"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  const addContact = async (contact: any) => {
-    const res = await axios.post("http://localhost:5000/api/contacts", contact);
-    setContacts([...contacts, res.data]);
-  };
-
-  const deleteContact = async (id: string) => {
-    await axios.delete(`http://localhost:5000/api/contacts/${id}`);
-    setContacts(contacts.filter((c) => c._id !== id));
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
-      <h1 className="text-2xl font-bold mb-4">📒 Contact Manager</h1>
-      <ContactForm onAdd={addContact} />
-      <ContactList contacts={contacts} onDelete={deleteContact} />
-    </div>
-  );
+  return <div>{token ? <Contacts token={token} /> : <Login />}</div>;
 }
+
+export default App;
