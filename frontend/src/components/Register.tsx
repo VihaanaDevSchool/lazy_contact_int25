@@ -1,22 +1,23 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { register as apiRegister } from "../api/auth";
 
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setToken } = useAuth();
+  const [error, setError] = useState("");
+  const { login } = useAuth(); // Use login from context
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
-      const { token } = await apiRegister({ name, email, password });
-      setToken(token);
+      await apiRegister({ name, email, password }); // Call API to register
+      await login(email, password); // Auto-login after registration
     } catch (error) {
-      alert("Register failed: " + (error as Error).message);
+      setError((error as Error).message || "Registration failed");
     }
     setLoading(false);
   };
@@ -27,6 +28,7 @@ function Register() {
       className="bg-white p-6 rounded-lg shadow-md w-80"
     >
       <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
       <input
         type="text"
         value={name}

@@ -24,44 +24,47 @@ function Contacts() {
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setToken } = useAuth();
+  const [error, setError] = useState("");
+  const { token, logout } = useAuth();
 
   useEffect(() => {
     fetchContacts();
-  }, []);
+  }, [token]);
 
   const fetchContacts = async () => {
     try {
-      const data = await getContacts();
+      const data = await getContacts(token);
       setContacts(data);
+      setError("");
     } catch (error) {
-      alert("Failed to fetch contacts");
+      setError("Failed to fetch contacts");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
       if (editingId) {
-        await updateContact(editingId, {
-          name: editName,
-          email: editEmail,
-          phone: editPhone,
-        });
+        await updateContact(
+          editingId,
+          { name: editName, email: editEmail, phone: editPhone },
+          token,
+        );
         setEditingId(null);
         setEditName("");
         setEditEmail("");
         setEditPhone("");
       } else {
-        await createContact({ name, email, phone });
+        await createContact({ name, email, phone }, token);
         setName("");
         setEmail("");
         setPhone("");
       }
       fetchContacts();
     } catch (error) {
-      alert("Operation failed: " + (error as Error).message);
+      setError("Operation failed");
     }
     setLoading(false);
   };
@@ -76,14 +79,14 @@ function Contacts() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure?")) return;
     try {
-      await deleteContact(id);
+      await deleteContact(id, token);
       fetchContacts();
     } catch (error) {
-      alert("Delete failed");
+      setError("Delete failed");
     }
   };
 
-  const handleLogout = () => setToken(null);
+  const handleLogout = () => logout();
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
@@ -104,6 +107,7 @@ function Contacts() {
         <h2 className="text-xl font-semibold mb-4">
           {editingId ? "Edit Contact" : "Add New Contact"}
         </h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
         {editingId ? (
           <>
             <input

@@ -1,10 +1,17 @@
-import { createContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useContext,
+} from "react";
 import { login as apiLogin, logout as apiLogout } from "../api/auth";
 
 // Define the shape of the context
 interface AuthContextType {
   user: { id: string; name: string; email: string } | null;
   token: string | null;
+  setToken: (token: string | null) => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -14,6 +21,15 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined,
 );
+
+// Custom hook to use AuthContext
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
 // AuthProvider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -57,9 +73,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, isAuthenticated }}
+      value={{ user, token, setToken, login, logout, isAuthenticated }}
     >
       {children}
-    </AuthContext.Provider>
+    </AuthContext.Provider> // Fixed closing tag
   );
 };

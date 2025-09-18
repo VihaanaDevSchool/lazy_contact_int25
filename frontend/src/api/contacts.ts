@@ -1,40 +1,42 @@
 import axios from "axios";
 
-const API_URL = "/api/contacts";
-
-const api = axios.create({ baseURL: API_URL });
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export const getContacts = async () => {
-  const response = await api.get("/");
-  return response.data;
-};
-
-export const createContact = async (contactData: {
+interface Contact {
+  _id: string;
   name: string;
   email: string;
   phone: string;
-}) => {
-  const response = await api.post("/", contactData);
+}
+
+export const getContacts = async (token: string | null) => {
+  const response = await axios.get<Contact[]>("/api/contacts", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const createContact = async (
+  data: { name: string; email: string; phone: string },
+  token: string | null,
+) => {
+  const response = await axios.post<Contact>("/api/contacts", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return response.data;
 };
 
 export const updateContact = async (
   id: string,
-  contactData: { name: string; email: string; phone: string },
+  data: { name: string; email: string; phone: string },
+  token: string | null,
 ) => {
-  const response = await api.put(`/${id}`, contactData);
+  const response = await axios.put<Contact>(`/api/contacts/${id}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return response.data;
 };
 
-export const deleteContact = async (id: string) => {
-  const response = await api.delete(`/${id}`);
-  return response.data;
+export const deleteContact = async (id: string, token: string | null) => {
+  await axios.delete(`/api/contacts/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 };
