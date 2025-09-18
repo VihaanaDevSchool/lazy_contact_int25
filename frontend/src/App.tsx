@@ -4,27 +4,36 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Contacts from "./components/Contacts";
 
-function AppContent() {
-  const { token } = useContext(AuthContext)!;
-
-  return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      {token ? (
-        <Contacts />
-      ) : (
-        <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
-          <Login />
-          <Register />
-        </div>
-      )}
-    </div>
-  );
-}
-
 function App() {
+  const authContext = useContext(AuthContext);
+
+  if (!authContext) {
+    return <div>Loading...</div>;
+  }
+
+  const { isAuthenticated } = authContext;
+
   return (
     <AuthProvider>
-      <AppContent />
+      <div className="container mx-auto p-4">
+        {isAuthenticated ? (
+          <div>
+            <Contacts />
+            <button
+              onClick={authContext.logout}
+              className="mt-4 bg-red-500 text-white p-2 rounded"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <div>
+            <h1 className="text-2xl font-bold mb-4">Contact Management App</h1>
+            <Register />
+            <Login />
+          </div>
+        )}
+      </div>
     </AuthProvider>
   );
 }
